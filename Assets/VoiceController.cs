@@ -9,11 +9,17 @@ using UnityEngine.Windows.Speech;
 public class VoiceController : MonoBehaviour
 {
     [SerializeField]
-    private string[] m_Keywords;
+    private string[] trigger_words = { "nova" };
+
+    [SerializeField]
+    private string[] confirm_words = { "confirm", "yes" };
+
     [SerializeField]
     private Text status;
 
-    private KeywordRecognizer m_Recognizer;
+    private KeywordRecognizer trigger_recognizer;
+    private KeywordRecognizer confirm_recognizer;
+
     private DictationRecognizer m_DictationRecognizer;
     [SerializeField]
     private Text m_Hypotheses;
@@ -24,18 +30,16 @@ public class VoiceController : MonoBehaviour
     void Start()
     {
         ClearVoiceUI();
-        m_Recognizer = new KeywordRecognizer(m_Keywords);
-        m_Recognizer.OnPhraseRecognized += OnPhraseRecognized;
-        m_Recognizer.Start();
+        trigger_recognizer = new KeywordRecognizer(trigger_words);
+        trigger_recognizer.OnPhraseRecognized += GetDictation;
+        trigger_recognizer.Start();
+
+        confirm_recognizer = new KeywordRecognizer(trigger_words);
+        confirm_recognizer.OnPhraseRecognized += GetDictation;
+
 
         m_DictationRecognizer = new DictationRecognizer();
         m_DictationRecognizer.AutoSilenceTimeoutSeconds = 2;
-
-        m_DictationRecognizer.DictationComplete += (cause) =>
-        {
-            Debug.Log("Dictation Complete due to "+ cause.ToString());
-            StartKeyword();
-        };
 
         m_DictationRecognizer.DictationResult += (text, confidence) =>
         {
@@ -60,6 +64,10 @@ public class VoiceController : MonoBehaviour
         {
             if (completionCause != DictationCompletionCause.Complete)
                 Debug.LogErrorFormat("Dictation completed unsuccessfully: {0}.", completionCause);
+
+            Debug.Log("Dictation Complete due to " + cause.ToString());
+            StartConfirm();
+
         };
 
         m_DictationRecognizer.DictationError += (error, hresult) =>
@@ -74,7 +82,7 @@ public class VoiceController : MonoBehaviour
         if (PhraseRecognitionSystem.Status == SpeechSystemStatus.Running)
         {
             PhraseRecognitionSystem.Shutdown();
-            m_Recognizer.Stop();
+            trigger_recognizer.Stop();
         }
 
         StartCoroutine(StartDictationWhenPossible());
@@ -92,6 +100,20 @@ public class VoiceController : MonoBehaviour
          
         StartCoroutine(StartKeywordWhenPossible());
     }
+
+    public void StartConfirm()
+    {
+        // Shutdown the PhraseRecognitionSystem. This controls the KeywordRecognizers.
+        if (PhraseRecognitionSystem.Status == SpeechSystemStatus.Running)
+        {
+            PhraseRecognitionSystem.Shutdown();
+            m_DictationRecognizer.Stop();
+        }
+
+
+        StartCoroutine(StartConfirmWhenPossible());
+    }
+
 
 
     private IEnumerator StartDictationWhenPossible()
@@ -112,8 +134,19 @@ public class VoiceController : MonoBehaviour
         }
         Debug.Log("Starting keyword");
         ClearVoiceUI();
-        m_Recognizer.Start();
+        trigger_recognizer.Start();
     }
+
+    private IEnumerator StartConfirmWhenPossible()
+    {
+        while (PhraseRecognitionSystem.Status == SpeechSystemStatus.Running)
+        {
+            yield return null;
+        }
+        Debug.Log("Starting confirm");
+        confirm_recognizer.Start();
+    }
+
 
     private void ClearVoiceUI()
     {
@@ -128,7 +161,7 @@ public class VoiceController : MonoBehaviour
 
     }
 
-    private void OnPhraseRecognized(PhraseRecognizedEventArgs args)
+    private void GetDictation(PhraseRecognizedEventArgs args)
     {
         StringBuilder builder = new StringBuilder();
         builder.AppendFormat("{0} ({1}){2}", args.text, args.confidence, Environment.NewLine);
@@ -141,6 +174,15 @@ public class VoiceController : MonoBehaviour
         status.text = "Listening...";
 
         StartDictation();
+    }
+
+    private void GetConfirmation(PhraseRecognizedEventArgs args)
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.AppendFormat("{0} ({1}){2}", args.text, args.confidence, Environment.NewLine);
+        Debug.Log(builder.ToString());
+
+        StartKeyword();
     }
 
 }
