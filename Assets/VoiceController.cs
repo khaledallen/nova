@@ -12,30 +12,43 @@ public class VoiceController : MonoBehaviour
     private string[] trigger_words = { "nova" };
 
     [SerializeField]
-    private string[] confirm_words = { "confirm", "yes" };
+    private string[] affirm_words = { "yes", "confirm" };
+    private string[] cancel_words = { "no", "cancel" };
+
+    private string[] confirm_words;
 
     [SerializeField]
     private Text status;
+
+    [SerializeField]
+    private Text confirmation;
+
 
     private KeywordRecognizer trigger_recognizer;
     private KeywordRecognizer confirm_recognizer;
 
     private DictationRecognizer m_DictationRecognizer;
-    [SerializeField]
-    private Text m_Hypotheses;
 
     [SerializeField]
     private Text m_Recognitions;
 
     void Start()
     {
+
+        int confirm_arr_length = affirm_words.Length + cancel_words.Length;
+        confirm_words = new string[confirm_arr_length];
+        affirm_words.CopyTo(confirm_words, 0);
+        cancel_words.CopyTo(confirm_words, affirm_words.Length);
+        Debug.Log(confirm_words);
+
         ClearVoiceUI();
         trigger_recognizer = new KeywordRecognizer(trigger_words);
         trigger_recognizer.OnPhraseRecognized += GetDictation;
         trigger_recognizer.Start();
 
-        confirm_recognizer = new KeywordRecognizer(trigger_words);
-        confirm_recognizer.OnPhraseRecognized += GetDictation;
+        confirm_recognizer = new KeywordRecognizer(confirm_words);
+        Debug.Log(confirm_recognizer.ToString());
+        confirm_recognizer.OnPhraseRecognized += GetConfirmation;
 
 
         m_DictationRecognizer = new DictationRecognizer();
@@ -65,7 +78,7 @@ public class VoiceController : MonoBehaviour
             if (completionCause != DictationCompletionCause.Complete)
                 Debug.LogErrorFormat("Dictation completed unsuccessfully: {0}.", completionCause);
 
-            Debug.Log("Dictation Complete due to " + cause.ToString());
+            Debug.Log("Dictation Complete due to " + completionCause.ToString());
             StartConfirm();
 
         };
@@ -94,7 +107,7 @@ public class VoiceController : MonoBehaviour
        if (PhraseRecognitionSystem.Status == SpeechSystemStatus.Running)
        {
             PhraseRecognitionSystem.Shutdown();
-            m_DictationRecognizer.Stop();
+            confirm_recognizer.Stop();
         }
 
          
@@ -144,6 +157,7 @@ public class VoiceController : MonoBehaviour
             yield return null;
         }
         Debug.Log("Starting confirm");
+        confirmation.text = "Confirm?";
         confirm_recognizer.Start();
     }
 
@@ -158,6 +172,8 @@ public class VoiceController : MonoBehaviour
         m_Recognitions.fontStyle = FontStyle.Normal;
 
         m_Recognitions.text = "";
+
+        confirmation.text = "";
 
     }
 
@@ -181,6 +197,15 @@ public class VoiceController : MonoBehaviour
         StringBuilder builder = new StringBuilder();
         builder.AppendFormat("{0} ({1}){2}", args.text, args.confidence, Environment.NewLine);
         Debug.Log(builder.ToString());
+
+        if(args.text == "confirm" || args.text == "yes")
+        {
+            Debug.Log("doing the action");
+        }
+        else
+        {
+            Debug.Log("cancelling");
+        }
 
         StartKeyword();
     }
