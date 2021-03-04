@@ -13,6 +13,7 @@ public class VoiceController : MonoBehaviour
 
     [SerializeField]
     private string[] affirm_words = { "yes", "confirm" };
+    [SerializeField]
     private string[] cancel_words = { "no", "cancel" };
 
     private string[] confirm_words;
