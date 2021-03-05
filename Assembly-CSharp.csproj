@@ -62,6 +62,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Intent.cs" />
+    <Compile Include="Assets\IntentAction.cs" />
+    <Compile Include="Assets\IntentDetector.cs" />
+    <Compile Include="Assets\IntentExecutor.cs" />
+    <Compile Include="Assets\Intents.cs" />
+    <Compile Include="Assets\Navigator.cs" />
     <Compile Include="Assets\VoiceController.cs" />
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>C:/Users/khale/Unity/NovaDemo/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>

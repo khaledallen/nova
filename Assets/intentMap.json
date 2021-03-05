@@ -1,0 +1,33 @@
+{
+    "intents": [
+        {
+            "intentName": "navigateRover",
+            "wordGroups": [
+                "navigate to the rover",
+                "find the rover"
+            ],
+            "action": {
+                "className": "Navigator",
+                "method": "Navigate",
+                "args": [
+                    "rover"
+                ]
+            }
+        },
+        {
+            "intentName": "navigateBase",
+            "wordGroups": [
+                "navigate to the base",
+                "find the base",
+                "return to base"
+            ],
+            "action": {
+                "className": "Navigator",
+                "method": "Navigate",
+                "args": [
+                    "base"
+                ]
+            }
+        }
+    ]
+}

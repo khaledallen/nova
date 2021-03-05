@@ -9,6 +9,9 @@ using UnityEngine.Windows.Speech;
 public class VoiceController : MonoBehaviour
 {
     [SerializeField]
+    private TextAsset intentsJson;
+
+    [SerializeField]
     private string[] trigger_words = { "nova" };
 
     [SerializeField]
@@ -33,24 +36,26 @@ public class VoiceController : MonoBehaviour
     [SerializeField]
     private Text m_Recognitions;
 
+    private IntentDetector intentDetector;
+    private IntentExecutor executor;
+
     void Start()
     {
 
+        intentDetector = new IntentDetector(intentsJson);
         int confirm_arr_length = affirm_words.Length + cancel_words.Length;
         confirm_words = new string[confirm_arr_length];
         affirm_words.CopyTo(confirm_words, 0);
         cancel_words.CopyTo(confirm_words, affirm_words.Length);
-        Debug.Log(confirm_words);
 
         ClearVoiceUI();
+
         trigger_recognizer = new KeywordRecognizer(trigger_words);
         trigger_recognizer.OnPhraseRecognized += GetDictation;
         trigger_recognizer.Start();
 
         confirm_recognizer = new KeywordRecognizer(confirm_words);
-        Debug.Log(confirm_recognizer.ToString());
         confirm_recognizer.OnPhraseRecognized += GetConfirmation;
-
 
         m_DictationRecognizer = new DictationRecognizer();
         m_DictationRecognizer.AutoSilenceTimeoutSeconds = 2;
@@ -80,6 +85,10 @@ public class VoiceController : MonoBehaviour
                 Debug.LogErrorFormat("Dictation completed unsuccessfully: {0}.", completionCause);
 
             Debug.Log("Dictation Complete due to " + completionCause.ToString());
+
+            executor = intentDetector.GetIntent(m_Recognitions.text);
+            Debug.Log(executor);
+
             StartConfirm();
 
         };
@@ -202,6 +211,7 @@ public class VoiceController : MonoBehaviour
         if(args.text == "confirm" || args.text == "yes")
         {
             Debug.Log("doing the action");
+            executor.Execute();
         }
         else
         {
