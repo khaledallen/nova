@@ -12,6 +12,7 @@ the Execute() function.
 */
 public interface IntentExecutor
 {
-    // you should override this function in the child
-    void Execute();
+    // Intentionally left empty
+    // For now, there is nothing specific this needs to do
+    // just make sure you implment it in your executor classes
 }

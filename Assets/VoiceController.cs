@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Windows.Speech;
@@ -25,6 +26,9 @@ public class VoiceController : MonoBehaviour
     private Text status;
 
     [SerializeField]
+    private Text actionConfirmation;
+
+    [SerializeField]
     private Text confirmation;
 
 
@@ -37,12 +41,14 @@ public class VoiceController : MonoBehaviour
     private Text m_Recognitions;
 
     private IntentDetector intentDetector;
+    private Intent activeIntent;
     private IntentExecutor executor;
 
     void Start()
     {
 
         intentDetector = new IntentDetector(intentsJson);
+
         int confirm_arr_length = affirm_words.Length + cancel_words.Length;
         confirm_words = new string[confirm_arr_length];
         affirm_words.CopyTo(confirm_words, 0);
@@ -81,13 +87,13 @@ public class VoiceController : MonoBehaviour
 
         m_DictationRecognizer.DictationComplete += (completionCause) =>
         {
-            if (completionCause != DictationCompletionCause.Complete)
+            if (completionCause != DictationCompletionCause.Complete ||
+                completionCause != DictationCompletionCause.TimeoutExceeded)
                 Debug.LogErrorFormat("Dictation completed unsuccessfully: {0}.", completionCause);
 
-            Debug.Log("Dictation Complete due to " + completionCause.ToString());
-
-            executor = intentDetector.GetIntent(m_Recognitions.text);
-            Debug.Log(executor);
+            activeIntent = intentDetector.GetIntent(m_Recognitions.text);
+            actionConfirmation.text = activeIntent.action.description;
+            Debug.Log(activeIntent);
 
             StartConfirm();
 
@@ -185,6 +191,8 @@ public class VoiceController : MonoBehaviour
 
         confirmation.text = "";
 
+        actionConfirmation.text = "";
+
     }
 
     private void GetDictation(PhraseRecognizedEventArgs args)
@@ -211,7 +219,21 @@ public class VoiceController : MonoBehaviour
         if(args.text == "confirm" || args.text == "yes")
         {
             Debug.Log("doing the action");
-            executor.Execute();
+
+            var type = Type.GetType(activeIntent.action.className);
+            var methodName = activeIntent.action.method;
+            Debug.Log(methodName);
+            executor = (IntentExecutor)Activator.CreateInstance(type);
+
+            Debug.Log(executor);
+
+            var intentMethod = type.GetMethod(methodName);
+            string[] intentArgs = activeIntent.action.args;
+            Debug.Log(intentMethod);
+            Debug.Log(intentArgs);
+            Debug.Log(intentArgs[0]);
+
+            intentMethod.Invoke(executor, intentArgs);
         }
         else
         {

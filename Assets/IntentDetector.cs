@@ -17,7 +17,7 @@ public class IntentDetector
        }
     }
 
-    public IntentExecutor GetIntent(string dictationResult)
+    public Intent GetIntent(string dictationResult)
     {
         Debug.Log(dictationResult);
         Intent activeIntent = null;
@@ -35,10 +35,10 @@ public class IntentDetector
                 }
             }
             if(activeIntent != null) break;
-        } 
-        var type = Type.GetType(activeIntent.action.className);
-        IntentExecutor intentExecutor = (IntentExecutor)Activator.CreateInstance(type);
-        return intentExecutor;
+        }
+        Debug.Log("intent detector");
+        Debug.Log(activeIntent);
+        return activeIntent;
     }
 
     private bool isSubset(string[] firstArr, string[] secondArr)

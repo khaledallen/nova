@@ -3,10 +3,11 @@
         {
             "intentName": "navigateRover",
             "wordGroups": [
-                "navigate to the rover",
-                "find the rover"
+                "navigate rover",
+                "find rover"
             ],
             "action": {
+				"description": "Begin navigation to rover",
                 "className": "Navigator",
                 "method": "Navigate",
                 "args": [
@@ -17,11 +18,12 @@
         {
             "intentName": "navigateBase",
             "wordGroups": [
-                "navigate to the base",
+                "navigate base",
                 "find the base",
                 "return to base"
             ],
             "action": {
+				"description": "Begin navigation to base",
                 "className": "Navigator",
                 "method": "Navigate",
                 "args": [
