@@ -87,7 +87,7 @@ public class VoiceController : MonoBehaviour
 
         m_DictationRecognizer.DictationComplete += (completionCause) =>
         {
-            if (completionCause != DictationCompletionCause.Complete ||
+            if (completionCause != DictationCompletionCause.Complete &&
                 completionCause != DictationCompletionCause.TimeoutExceeded)
                 Debug.LogErrorFormat("Dictation completed unsuccessfully: {0}.", completionCause);
 
